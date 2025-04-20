@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this
 // software and associated documentation files (the "Software"), to deal in the Software
 // without restriction, including without limitation the rights to use, copy, modify, merge,
 // publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
 // to whom the Software is furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 // INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 // PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
@@ -16,7 +16,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Diagnostics;
+using Avalonia;
+using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AvaloniaEdit.Utils;
@@ -32,6 +35,27 @@ namespace AvaloniaEdit.Folding
         private bool _isFolded;
         private string _title;
         internal CollapsedLineSection[] CollapsedSections;
+
+
+		IBrush backgroundColor = null; //added by Goswin, used for selection highlighting
+		/// <summary>
+		/// Get or Set the background color for the box in collapsed state
+		/// Call TextView.Redraw() if not showing.
+		/// </summary>
+		public IBrush BackgroundColor {
+			get { return backgroundColor; }
+			set { backgroundColor = value; }
+		}
+
+		Action<Rect,DrawingContext> decorateRectangle = null; //added by Goswin, used for Error highlighting
+		/// <summary>
+		/// Get or Set an additional drawing action on the collapsed rectangle.
+		/// </summary>
+		public Action<Rect,DrawingContext> DecorateRectangle {
+			get { return decorateRectangle; }
+			set { decorateRectangle = value; }
+		}
+
 
         /// <summary>
         /// Gets/sets if the section is folded.

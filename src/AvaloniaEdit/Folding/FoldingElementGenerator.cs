@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this
 // software and associated documentation files (the "Software"), to deal in the Software
 // without restriction, including without limitation the rights to use, copy, modify, merge,
 // publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
 // to whom the Software is furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 // INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 // PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
@@ -158,7 +158,9 @@ namespace AvaloniaEdit.Folding
 				p.SetForegroundBrush(TextBrush);
 				var textFormatter = TextFormatterFactory.Create(CurrentContext.TextView);
 				var text = FormattedTextElement.PrepareText(textFormatter, title, p);
-				return new FoldingLineElement(foldingSection, text, foldedUntil - offset, TextBrush);
+				return new FoldingLineElement(foldingSection, text, foldedUntil - offset, TextBrush){
+																							textBrushBackground = foldingSection.BackgroundColor,
+																							decorateRectangle   = foldingSection.DecorateRectangle };
 			} else {
 				return null;
 			}
@@ -169,15 +171,19 @@ namespace AvaloniaEdit.Folding
             private readonly FoldingSection _fs;
             private readonly IBrush _textBrush;
 
+            internal IBrush textBrushBackground; //added by Goswin, used for selection highlighting
+			internal Action<Rect, DrawingContext> decorateRectangle; //added by Goswin, used for Error highlighting
+
             public FoldingLineElement(FoldingSection fs, TextLine text, int documentLength, IBrush textBrush) : base(text, documentLength)
             {
                 _fs = fs;
                 _textBrush = textBrush;
+
             }
 
 			public override TextRun CreateTextRun(int startVisualColumn, ITextRunConstructionContext context)
 			{
-				return new FoldingLineTextRun(this, this.TextRunProperties, _textBrush);
+				return new FoldingLineTextRun(this, this.TextRunProperties, _textBrush){textBrushBackground = textBrushBackground, decorateRectangle = decorateRectangle };
 			}
 
             //DOUBLETAP
@@ -192,6 +198,9 @@ namespace AvaloniaEdit.Folding
         {
             private readonly IBrush _textBrush;
 
+            internal IBrush textBrushBackground; //added by Goswin, used for selection highlighting
+			internal Action<Rect,DrawingContext> decorateRectangle; //added by Goswin, used for Error highlighting
+
             public FoldingLineTextRun(FormattedTextElement element, TextRunProperties properties, IBrush textBrush)
                 : base(element, properties)
             {
@@ -202,7 +211,9 @@ namespace AvaloniaEdit.Folding
             {
                 var (width, height) = Size;
                 var r = new Rect(origin.X, origin.Y, width, height);
-                drawingContext.DrawRectangle(new ImmutablePen(_textBrush.ToImmutable()), r);
+                //drawingContext.DrawRectangle(new ImmutablePen(_textBrush.ToImmutable()), r); // original
+                drawingContext.DrawRectangle(textBrushBackground, new Pen(_textBrush, 1), r); // modified by Goswin, so that the collapsed text box can be highlighted too
+				if (decorateRectangle != null) { decorateRectangle(r, drawingContext); } // to draw red squiggles on folding box
                 base.Draw(drawingContext, origin);
             }
         }
