@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this
 // software and associated documentation files (the "Software"), to deal in the Software
 // without restriction, including without limitation the rights to use, copy, modify, merge,
 // publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
 // to whom the Software is furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 // INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 // PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
@@ -32,6 +32,15 @@ namespace AvaloniaEdit.CodeCompletion
     {
         private PopupWithCustomPosition _toolTip;
         private CompletionTipContentControl _toolTipContent;
+
+        /// <summary>
+		/// Gets and sets the ToolTip Content of the of this completion window.
+		/// So that content can be set here or via completion line Description
+		/// </summary>
+		public object ToolTipContent { // Added by Goswin
+			get { return _toolTipContent.Content ; }
+			set { _toolTipContent.Content = value; }
+		}
 
         /// <summary>
         /// Gets the completion list used in this completion window.
@@ -96,24 +105,24 @@ namespace AvaloniaEdit.CodeCompletion
 
             var item = CompletionList.SelectedItem;
             var description = item?.Description;
-            
-    
+
+
             if (description != null && Host is Control placementTarget && CompletionList.CurrentList != null)
             {
                 _toolTipContent.Content = description;
 
                 double yOffset = 0;
                 var selectedIndex = CompletionList.ListBox.SelectedIndex;
-                    
+
                 var itemContainer = CompletionList.ListBox.ContainerFromIndex(selectedIndex);
-                    
+
                 if (itemContainer != null)
                 {
                     _toolTip.Placement = PlacementMode.RightEdgeAlignedTop;
                     var position = itemContainer.TranslatePoint(new Point(0, 0), placementTarget);
                     if (position.HasValue) yOffset = position.Value.Y;
                 }
-                else 
+                else
                 {
                     //When scrolling down the container is not always ready
                     //If that happens we align the tooltip at the bottom or top
@@ -126,7 +135,7 @@ namespace AvaloniaEdit.CodeCompletion
                         _toolTip.Placement = PlacementMode.RightEdgeAlignedTop;
                     }
                 }
-                   
+
                 _toolTip.Offset = new Point(2, yOffset);
                 _toolTip.PlacementTarget = placementTarget;
                 _toolTip.IsOpen = true;
