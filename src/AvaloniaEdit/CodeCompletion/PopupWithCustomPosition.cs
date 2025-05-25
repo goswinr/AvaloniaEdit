@@ -1,9 +1,9 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.Primitives;
 
 namespace AvaloniaEdit.CodeCompletion
 {
-    internal class PopupWithCustomPosition : Popup
+    public class PopupWithCustomPosition : Popup
     {
         public Point Offset
         {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
+// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this
 // software and associated documentation files (the "Software"), to deal in the Software
@@ -37,9 +37,9 @@ namespace AvaloniaEdit.CodeCompletion
 		/// Gets and sets the ToolTip Content of the of this completion window.
 		/// So that content can be set here or via completion line Description
 		/// </summary>
-		public object ToolTipContent { // Added by Goswin
-			get { return _toolTipContent.Content ; }
-			set { _toolTipContent.Content = value; }
+		public Control ToolTipContent { // Added by Goswin
+			get { return _toolTip.Child ; }
+			set { _toolTip.Child = value; }
 		}
 
         /// <summary>
