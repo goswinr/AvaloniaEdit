@@ -16,16 +16,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
-using AvaloniaEdit.Editing;
-using AvaloniaEdit.Rendering;
-using AvaloniaEdit.Utils;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
+using AvaloniaEdit.Editing;
+using AvaloniaEdit.Rendering;
+using AvaloniaEdit.Utils;
 
 namespace AvaloniaEdit.Folding
 {
@@ -230,7 +229,7 @@ namespace AvaloniaEdit.Folding
         private void CalculateFoldLinesForFoldingsActiveAtStart(List<TextLine> allTextLines, Pen[] colors, Pen[] endMarker)
         {
             var viewStartOffset = TextView.VisualLines[0].FirstDocumentLine.Offset;
-            var viewEndOffset = TextView.VisualLines.Last().LastDocumentLine.EndOffset;
+            var viewEndOffset = TextView.VisualLines[^1].LastDocumentLine.EndOffset;
             var foldings = FoldingManager.GetFoldingsContaining(viewStartOffset);
             var maxEndOffset = 0;
             foreach (var fs in foldings)

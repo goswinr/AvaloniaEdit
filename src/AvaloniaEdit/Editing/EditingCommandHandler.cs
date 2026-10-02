@@ -21,11 +21,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia;
-using AvaloniaEdit.Document;
-using Avalonia.Input;
-using AvaloniaEdit.Utils;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using AvaloniaEdit.Document;
+using AvaloniaEdit.Utils;
 
 namespace AvaloniaEdit.Editing
 {
@@ -33,7 +33,7 @@ namespace AvaloniaEdit.Editing
     /// We re-use the CommandBinding and InputBinding instances between multiple text areas,
     /// so this class is static.
     /// </summary>
-    internal class EditingCommandHandler
+    internal static class EditingCommandHandler
     {
         /// <summary>
         /// Creates a new <see cref="TextAreaInputHandler"/> for the text area.
@@ -62,7 +62,7 @@ namespace AvaloniaEdit.Editing
         }
 
         static EditingCommandHandler()
-        {            
+        {
             AddBinding(EditingCommands.Delete, KeyModifiers.None, Key.Delete, OnDelete(CaretMovementType.CharRight));
             AddBinding(EditingCommands.DeleteNextWord, KeyModifiers.Control, Key.Delete,
                 OnDelete(CaretMovementType.WordRight));
@@ -130,8 +130,8 @@ namespace AvaloniaEdit.Editing
                         }
                         else if (defaultSegmentType == DefaultSegmentType.WholeDocument)
                         {
-                            start = textArea.Document.Lines.First();
-                            end = textArea.Document.Lines.Last();
+                            start = textArea.Document.Lines[0];
+                            end = textArea.Document.Lines[^1];
                         }
                         else
                         {
@@ -415,13 +415,18 @@ namespace AvaloniaEdit.Editing
             var text = textArea.Selection.GetText();
             text = TextUtilities.NormalizeNewLines(text, Environment.NewLine);
 
-            SetClipboardText(text, textArea);
+
+            var df = new DataTransfer();
+            var item = new DataTransferItem();
+            item.Set(DataFormat.Text, text);
+            df.Add(item);
+            SetClipboardText(df, textArea);
 
             textArea.OnTextCopied(new TextEventArgs(text));
             return true;
         }
 
-        public static bool ConfirmDataFormat(TextArea textArea, DataObject dataObject, string format)
+        public static bool ConfirmDataFormat<T>(TextArea textArea, DataTransfer dataObject, DataFormat<T> format) where T : class
         {
             return true;
             ////var e = new DataObjectSettingDataEventArgs(dataObject, format);
@@ -429,11 +434,11 @@ namespace AvaloniaEdit.Editing
             ////return !e.CommandCancelled;
         }
 
-        private static void SetClipboardText(string text, Visual visual)
+        private static void SetClipboardText(DataTransfer text, Visual visual)
         {
             try
             {
-                TopLevel.GetTopLevel(visual)?.Clipboard?.SetTextAsync(text);
+                TopLevel.GetTopLevel(visual)?.Clipboard?.SetDataAsync(text);
             }
             catch (Exception)
             {
@@ -447,7 +452,7 @@ namespace AvaloniaEdit.Editing
             ISegment wholeLine = new SimpleSegment(line.Offset, line.TotalLength);
             var text = textArea.Document.GetText(wholeLine);
             // Ignore empty line copy
-            if(string.IsNullOrEmpty(text)) return false;
+            if (string.IsNullOrEmpty(text)) return false;
             // Ensure we use the appropriate newline sequence for the OS
             text = TextUtilities.NormalizeNewLines(text, Environment.NewLine);
 
@@ -477,8 +482,11 @@ namespace AvaloniaEdit.Editing
             //textArea.RaiseEvent(copyingEventArgs);
             //if (copyingEventArgs.CommandCancelled)
             //    return false;
-
-            SetClipboardText(text, textArea);
+            var df = new DataTransfer();
+            var item = new DataTransferItem();
+            item.Set(DataFormat.Text, text);
+            df.Add(item);
+            SetClipboardText(df, textArea);
 
             textArea.OnTextCopied(new TextEventArgs(text));
             return true;
@@ -504,7 +512,8 @@ namespace AvaloniaEdit.Editing
                 string text = null;
                 try
                 {
-                    text = await TopLevel.GetTopLevel(textArea)?.Clipboard?.GetTextAsync();
+                    var data = await TopLevel.GetTopLevel(textArea)?.Clipboard?.TryGetDataAsync();
+                    text = await data.TryGetTextAsync();
                 }
                 catch (Exception)
                 {
@@ -535,11 +544,11 @@ namespace AvaloniaEdit.Editing
             }
         }
 
-        internal static string GetTextToPaste(IDataObject dataObject, TextArea textArea)
+        internal static string GetTextToPaste(IDataTransfer dataObject, TextArea textArea)
         {
-            if (dataObject.Contains(DataFormats.Text))
+            if (dataObject.Contains(DataFormat.Text))
             {
-                return GetTextToPaste((string)dataObject.Get(DataFormats.Text), textArea);
+                return GetTextToPaste((string)dataObject.TryGetText() ?? "", textArea);
             }
 
             return null;

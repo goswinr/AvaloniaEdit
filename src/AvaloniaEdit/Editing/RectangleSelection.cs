@@ -18,10 +18,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Avalonia;
+using Avalonia.Input;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Utils;
 
@@ -80,7 +81,7 @@ namespace AvaloniaEdit.Editing
         /// Key gesture: Alt+Shift+End
         /// </summary>
         public static readonly RoutedCommand BoxSelectToLineEnd = new RoutedCommand(nameof(BoxSelectToLineEnd));
-        
+
         #endregion
 
         private TextDocument _document;
@@ -106,8 +107,8 @@ namespace AvaloniaEdit.Editing
             _startXPos = GetXPos(textArea, start);
             _endXPos = GetXPos(textArea, end);
             CalculateSegments();
-            _topLeftOffset = _segments.First().StartOffset;
-            _bottomRightOffset = _segments.Last().EndOffset;
+            _topLeftOffset = _segments[0].StartOffset;
+            _bottomRightOffset = _segments[^1].EndOffset;
 
             StartPosition = start;
             EndPosition = end;
@@ -122,8 +123,8 @@ namespace AvaloniaEdit.Editing
             _startXPos = startXPos;
             _endXPos = GetXPos(textArea, end);
             CalculateSegments();
-            _topLeftOffset = _segments.First().StartOffset;
-            _bottomRightOffset = _segments.Last().EndOffset;
+            _topLeftOffset = _segments[0].StartOffset;
+            _bottomRightOffset = _segments[^1].EndOffset;
 
             StartPosition = GetStart();
             EndPosition = end;
@@ -138,8 +139,8 @@ namespace AvaloniaEdit.Editing
             _startXPos = GetXPos(textArea, start);
             _endXPos = endXPos;
             CalculateSegments();
-            _topLeftOffset = _segments.First().StartOffset;
-            _bottomRightOffset = _segments.Last().EndOffset;
+            _topLeftOffset = _segments[0].StartOffset;
+            _bottomRightOffset = _segments[^1].EndOffset;
 
             StartPosition = start;
             EndPosition = GetEnd();
@@ -181,7 +182,7 @@ namespace AvaloniaEdit.Editing
 
         private TextViewPosition GetStart()
         {
-            var segment = (_startLine < _endLine ? _segments.First() : _segments.Last());
+            var segment = (_startLine < _endLine ? _segments[0] : _segments[^1]);
             if (_startXPos < _endXPos)
             {
                 return new TextViewPosition(_document.GetLocation(segment.StartOffset), segment.StartVisualColumn);
@@ -191,7 +192,7 @@ namespace AvaloniaEdit.Editing
 
         private TextViewPosition GetEnd()
         {
-            var segment = (_startLine < _endLine ? _segments.Last() : _segments.First());
+            var segment = (_startLine < _endLine ? _segments[^1] : _segments[0]);
             if (_startXPos < _endXPos)
             {
                 return new TextViewPosition(_document.GetLocation(segment.EndOffset), segment.EndVisualColumn);
@@ -389,15 +390,16 @@ namespace AvaloniaEdit.Editing
         /// </summary>
         public const string RectangularSelectionDataType = "AvalonEditRectangularSelection";
 
-        public override Avalonia.Input.DataObject CreateDataObject(TextArea textArea)
+        public override Avalonia.Input.DataTransfer CreateDataObject(TextArea textArea)
         {
             var data = base.CreateDataObject(textArea);
 
-            if (EditingCommandHandler.ConfirmDataFormat(textArea, data, RectangularSelectionDataType))
+            var format = DataFormat.CreateBytesApplicationFormat(RectangularSelectionDataType);
+            if (EditingCommandHandler.ConfirmDataFormat(textArea, data, format))
             {
-                MemoryStream isRectangle = new MemoryStream(1);
-                isRectangle.WriteByte(1);
-                data.Set(RectangularSelectionDataType, isRectangle);
+                var item = new DataTransferItem();
+                item.Set(format, [(byte)1]);
+                data.Add(item);
             }
             return data;
         }
@@ -407,7 +409,7 @@ namespace AvaloniaEdit.Editing
         {
             // It's possible that ToString() gets called on old (invalid) selections, e.g. for "change from... to..." debug message
             // make sure we don't crash even when the desired locations don't exist anymore.
-            return $"[RectangleSelection {_startLine} {_topLeftOffset} {_startXPos} to {_endLine} {_bottomRightOffset} {_endXPos}]";
+            return string.Create(CultureInfo.InvariantCulture, $"[{nameof(RectangleSelection)} {_startLine} {_topLeftOffset} {_startXPos} to {_endLine} {_bottomRightOffset} {_endXPos}]");
         }
     }
 }

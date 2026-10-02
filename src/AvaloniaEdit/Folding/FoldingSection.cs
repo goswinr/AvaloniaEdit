@@ -33,7 +33,6 @@ namespace AvaloniaEdit.Folding
     {
         private readonly FoldingManager _manager;
         private bool _isFolded;
-        private string _title;
         internal CollapsedLineSection[] CollapsedSections;
 
 
@@ -129,13 +128,13 @@ namespace AvaloniaEdit.Folding
         {
             get
             {
-                return _title;
+                return field;
             }
             set
             {
-                if (_title != value)
+                if (field != value)
                 {
-                    _title = value;
+                    field = value;
                     if (IsFolded)
                         _manager.Redraw(this);
                 }
