@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using Avalonia;
 using AvaloniaEdit.Rendering;
+using AvaloniaEdit.Utils;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
